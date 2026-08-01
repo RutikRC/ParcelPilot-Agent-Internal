@@ -9,3 +9,13 @@ backend/playwright/.auth/
 backend/playwright/.local-browsers/
 backend/.env
 backend/package-lock.json
+ai-service/.venv/
+ai-service/__pycache__/
+ai-service/*.pyc
+ai-service/.env
+ai-service/.pytest_cache/
+ai-service/.idea/
+ai-service/.vscode/
+.venv/
+backend/uploads/
+dummy.md

@@ -1,9 +1,31 @@
 const pool = require("../../config/db");
 
+const MIGRATIONS = [
+  `CREATE TABLE IF NOT EXISTS users (
+    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username       VARCHAR(100) NOT NULL UNIQUE,
+    email          VARCHAR(255) NOT NULL UNIQUE,
+    password       VARCHAR(255) NOT NULL,
+    refresh_token  TEXT,
+    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );`,
+
+  `CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);`,
+  `CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);`,
+];
+
+const ensureTable = async () => {
+  for (const sql of MIGRATIONS) {
+    await pool.query(sql);
+  }
+};
+
 /**
  * Create a new user
  */
 const createUser = async (username, email, password) => {
+    await ensureTable();
     const query = `
         INSERT INTO users (username, email, password)
         VALUES ($1, $2, $3)

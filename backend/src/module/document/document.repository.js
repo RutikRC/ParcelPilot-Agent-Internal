@@ -1,7 +1,44 @@
 ﻿const pool = require("../../config/db");
 const AppError = require("../../utils/AppError");
 
+const MIGRATIONS = [
+  `CREATE TABLE IF NOT EXISTS documents (
+    id                UUID PRIMARY KEY,
+    uuid              UUID NOT NULL DEFAULT gen_random_uuid(),
+    user_id           UUID,
+    title             VARCHAR(500) NOT NULL,
+    original_name     VARCHAR(500) NOT NULL,
+    stored_name       VARCHAR(500) NOT NULL,
+    mime_type         VARCHAR(200),
+    extension         VARCHAR(20),
+    size              BIGINT NOT NULL DEFAULT 0,
+    path              TEXT NOT NULL,
+    version           INTEGER NOT NULL DEFAULT 1,
+    status            VARCHAR(50) NOT NULL DEFAULT 'uploaded',
+    processing_stage  VARCHAR(100) DEFAULT 'pending',
+    checksum          VARCHAR(128),
+    description       TEXT,
+    tags              TEXT[],
+    metadata          JSONB DEFAULT '{}',
+    is_deleted        BOOLEAN NOT NULL DEFAULT false,
+    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );`,
+
+  `CREATE INDEX IF NOT EXISTS idx_documents_status ON documents (status);`,
+  `CREATE INDEX IF NOT EXISTS idx_documents_processing_stage ON documents (processing_stage);`,
+  `CREATE INDEX IF NOT EXISTS idx_documents_user_id ON documents (user_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_documents_is_deleted ON documents (is_deleted);`,
+];
+
+const ensureTable = async () => {
+  for (const sql of MIGRATIONS) {
+    await pool.query(sql);
+  }
+};
+
 const createDocument = async (document) => {
+  await ensureTable();
   const query = `
     INSERT INTO documents (
       id,
@@ -46,7 +83,7 @@ const createDocument = async (document) => {
     document.processing_stage,
     document.checksum,
     document.description,
-    document.tags ? JSON.stringify(document.tags) : null,
+    document.tags && Array.isArray(document.tags) ? document.tags : null,
     document.metadata ? JSON.stringify(document.metadata) : null,
     false,
   ];
