@@ -2,7 +2,7 @@ const axios = require("axios");
 const AppError = require("../../../utils/AppError");
 const logger = require("../../../utils/logger");
 
-const DEFAULT_TIMEOUT = parseInt(process.env.AI_SERVICE_TIMEOUT || "60000", 10);
+const DEFAULT_TIMEOUT = parseInt(process.env.AI_SERVICE_TIMEOUT || "600000", 10);
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8000";
 
 /**
