@@ -63,7 +63,7 @@ The completed system combines:
 │ Embeddings             │      │ Cancellation                 │
 │ Orders                 │      │ Service Credit               │
 │ Tickets                │      │ Escalation                   │
-└────────────────────────┘                     └──────────────┬───────────────┘
+└────────────────────────┘      └──────────────┬───────────────┘
                                     PostgreSQL mutation
                                                │
                                                ▼
