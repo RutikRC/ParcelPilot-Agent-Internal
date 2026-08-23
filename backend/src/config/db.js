@@ -69,50 +69,11 @@ console.log("------------------------------------");
 
 const pool = new Pool(poolConfig);
 
-// ---------------------------------------------------------------------------
-// Connection test – async/await with detailed diagnostics
-// ---------------------------------------------------------------------------
-
-(async () => {
-  console.log("");
-  console.log("Connecting to PostgreSQL...");
-
-  let client;
-  try {
-    client = await pool.connect();
-
-    console.log("");
-    console.log("✅ Connected to PostgreSQL");
-    console.log("");
-
-    // Verify connection by running diagnostics queries
-    const versionResult = await client.query("SELECT version() AS version");
-    const dbResult = await client.query("SELECT current_database() AS current_database");
-    const userResult = await client.query("SELECT current_user AS current_user");
-
-    console.log("  PostgreSQL Version:", versionResult.rows[0].version);
-    console.log("  Current Database:  ", dbResult.rows[0].current_database);
-    console.log("  Current User:      ", userResult.rows[0].current_user);
-    console.log("------------------------------------");
-
-    client.release();
-  } catch (error) {
-    console.error("");
-    console.error("❌ PostgreSQL Connection Failed");
-    console.error("");
-    console.error("  error.message:", error.message);
-    console.error("  error.code:   ", error.code || "N/A");
-    console.error("  error.stack:  ", error.stack);
-    console.error("------------------------------------");
-
-    if (client) {
-      try {
-        client.release();
-      } catch (_) {
-        // ignore release errors during failure path
-      }
-    }
-  }
-})();
+// Pool connections are established on demand by the API and workers. Avoid a
+// detached startup connection attempt that can report a false failure while
+// the first real request is still able to connect successfully.
+pool.on("error", (error) => {
+  console.error("PostgreSQL pool error:", error.message);
+});
 
 module.exports = pool;
