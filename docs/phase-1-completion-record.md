@@ -161,6 +161,12 @@ The implementation does not hard-code customer IDs. It matches the basename of t
 
 All runtime commands were run manually from WSL.
 
+Unless otherwise stated, start from the repository root:
+
+```bash
+cd /mnt/e/calquity-assessment/AI-Automation-Agent-Workflow-Chat-Orchestration
+```
+
 ### Install Python dependencies
 
 ```bash
@@ -186,15 +192,45 @@ The workbook ingestion output reported validation success and committed the data
 
 ### Register PDF documents
 
+Run this after PostgreSQL, Redis, and the backend environment are available.
+
 ```bash
 node backend/src/module/assessment/ingest-documents.js
 ```
 
 The document ingestion registered all six supplied PDFs and enqueued them as `DOCUMENT_RECEIVED` jobs. Agreement account mappings were resolved from the workbook.
 
-### Start the AI service
+### Configure WSL PostgreSQL
+
+Before starting Node, ensure `backend/.env` contains one consistent set of local PostgreSQL settings:
+
+```dotenv
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_NAME=postgres
+DB_USER=postgres
+DB_PASSWORD=<your-password>
+DB_SSLMODE=require
+DATABASE_URL=postgresql://postgres:<your-password>@127.0.0.1:5432/postgres
+```
+
+Do not commit or share the real password.
+
+### Start Ollama
+
+Run these in a dedicated WSL terminal. Pull the model before starting the blocking server command:
 
 ```bash
+ollama pull nomic-embed-text
+ollama serve
+```
+
+### Start the AI service
+
+Run from the repository root in a separate terminal:
+
+```bash
+source .venv/bin/activate
 uvicorn app.main:app --reload --app-dir ai-service
 ```
 
@@ -204,20 +240,16 @@ Health endpoint:
 curl http://localhost:8000/api/v1/health
 ```
 
-### Start the backend worker
+### Start the backend API and worker
+
+Run from the repository root in a separate terminal:
 
 ```bash
-npm --prefix backend run dev:worker
+npm --prefix backend install
+npm --prefix backend run dev
 ```
 
-### Start Ollama
-
-```bash
-ollama serve
-ollama pull nomic-embed-text
-```
-
-The embedding model must be available to the AI service at `http://localhost:11434`.
+The combined backend command starts both the API and worker. The API listens on `0.0.0.0:5000`; the AI service uses Ollama at `http://localhost:11434`.
 
 ## 7. Runtime Issue Resolution
 

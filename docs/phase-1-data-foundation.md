@@ -83,8 +83,13 @@ Metadata is stored in the existing `documents.metadata` JSONB column. `account_i
 
 Do not run these commands automatically. From the repository root:
 
-```powershell
-pip install -r scripts/requirements.txt
+```bash
+cd /mnt/e/calquity-assessment/AI-Automation-Agent-Workflow-Chat-Orchestration
+```
+
+```bash
+source .venv/bin/activate
+python -m pip install -r scripts/requirements.txt
 node backend/src/module/assessment/migrate.js
 python scripts/inspect_assessment_workbook.py
 python scripts/validate_assessment_data.py
@@ -92,13 +97,39 @@ python scripts/ingest_assessment_workbook.py
 node backend/src/module/assessment/ingest-documents.js
 ```
 
-Run the backend and workers separately when checking the document queue:
+Before starting Node, configure `backend/.env` for WSL PostgreSQL with one consistent set of values:
 
-```powershell
-cd backend
-npm install
-npm run dev:server
-npm run dev:worker
+```dotenv
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_NAME=postgres
+DB_USER=postgres
+DB_PASSWORD=<your-password>
+DB_SSLMODE=require
+DATABASE_URL=postgresql://postgres:<your-password>@127.0.0.1:5432/postgres
+```
+
+Run each long-running service in its own WSL terminal and keep every terminal open. Run PDF registration after PostgreSQL, Redis, and the backend environment are available.
+
+Terminal 1, Ollama:
+
+```bash
+ollama pull nomic-embed-text
+ollama serve
+```
+
+Terminal 2, AI service, from the repository root:
+
+```bash
+source .venv/bin/activate
+uvicorn app.main:app --reload --app-dir ai-service
+```
+
+Terminal 3, backend API and worker, from the repository root:
+
+```bash
+npm --prefix backend install
+npm --prefix backend run dev
 ```
 
 See the SQL and API checks below. Replace connection placeholders with local environment values; never put secrets in this document.
@@ -146,9 +177,9 @@ Expected behavior: valid workbook data is upserted without duplicate primary key
 
 Use the configured Redis database without printing credentials:
 
-```powershell
-redis-cli -h $env:REDIS_HOST -p $env:REDIS_PORT -n $env:REDIS_DB LLEN bull:document-processing:wait
-redis-cli -h $env:REDIS_HOST -p $env:REDIS_PORT -n $env:REDIS_DB KEYS 'bull:document-processing:*'
+```bash
+redis-cli -h 127.0.0.1 -p 6379 -n 0 LLEN bull:document-processing:wait
+redis-cli -h 127.0.0.1 -p 6379 -n 0 KEYS 'bull:document-processing:*'
 ```
 
 Inspect processing state with the `documents` query above, and inspect embeddings with the `document_embeddings` query above. Do not infer successful processing solely from a queued job; check each stored stage manually.
