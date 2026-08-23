@@ -1,0 +1,28 @@
+/**
+ * Action types — supported state-changing actions and their statuses.
+ */
+
+const ACTION_TYPES = {
+  CANCEL_ORDER: "CANCEL_ORDER",
+  ISSUE_SERVICE_CREDIT: "ISSUE_SERVICE_CREDIT",
+  ESCALATE_TICKET: "ESCALATE_TICKET",
+};
+
+const ACTION_STATUSES = {
+  PENDING_CONFIRMATION: "PENDING_CONFIRMATION",
+  CONFIRMED: "CONFIRMED",
+  EXECUTING: "EXECUTING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+  EXPIRED: "EXPIRED",
+  REJECTED: "REJECTED",
+};
+
+// Pending action TTL (15 minutes)
+const PENDING_ACTION_TTL_MS = 15 * 60 * 1000;
+
+module.exports = {
+  ACTION_TYPES,
+  ACTION_STATUSES,
+  PENDING_ACTION_TTL_MS,
+};
