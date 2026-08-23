@@ -35,8 +35,14 @@ const searchSimilarChunks = async (queryEmbedding, limit) => {
     SELECT
       d.id AS "documentId",
       d.title AS "documentTitle",
+      d.original_name AS "filename",
+      d.metadata->>'document_type' AS "documentType",
+      d.metadata->>'document_status' AS "documentStatus",
+      d.metadata->>'account_id' AS "accountId",
+      dc.id AS "chunkId",
       dc.chunk_index AS "chunkIndex",
       dc.chunk_text AS "chunkText",
+      dc.chunk_text AS content,
       1 - (de.embedding <=> $1::vector) AS similarity
     FROM document_embeddings de
     JOIN document_chunks dc ON dc.id = de.chunk_id
@@ -55,8 +61,14 @@ const searchSimilarChunks = async (queryEmbedding, limit) => {
     return rows.map((row) => ({
       documentId: row.documentId,
       documentTitle: row.documentTitle,
+      filename: row.filename,
+      documentType: row.documentType,
+      documentStatus: row.documentStatus,
+      accountId: row.accountId,
+      chunkId: row.chunkId,
       chunkIndex: row.chunkIndex,
       chunkText: row.chunkText,
+      content: row.content,
       similarity: Math.round(row.similarity * 10000) / 10000, // Round to 4 decimal places
     }));
   } catch (error) {

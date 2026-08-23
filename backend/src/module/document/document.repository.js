@@ -29,6 +29,9 @@ const MIGRATIONS = [
   `CREATE INDEX IF NOT EXISTS idx_documents_processing_stage ON documents (processing_stage);`,
   `CREATE INDEX IF NOT EXISTS idx_documents_user_id ON documents (user_id);`,
   `CREATE INDEX IF NOT EXISTS idx_documents_is_deleted ON documents (is_deleted);`,
+  `CREATE INDEX IF NOT EXISTS idx_documents_assessment_account_id
+    ON documents ((metadata->>'account_id'))
+    WHERE is_deleted = false;`,
 ];
 
 const ensureTable = async () => {
@@ -185,7 +188,7 @@ const getDocumentById = async (id) => {
 const updateDocumentMetadata = async (id, metadata) => {
   const query = `
     UPDATE documents
-    SET metadata = $1,
+    SET metadata = COALESCE(metadata, '{}'::jsonb) || COALESCE($1::jsonb, '{}'::jsonb),
         updated_at = CURRENT_TIMESTAMP
     WHERE id = $2
       AND is_deleted = false
@@ -242,6 +245,7 @@ const restoreDocument = async (id) => {
 };
 
 module.exports = {
+  ensureTable,
   createDocument,
   listDocuments,
   getDocumentById,
