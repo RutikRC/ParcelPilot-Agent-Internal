@@ -1,6 +1,6 @@
-# AI CRM Copilot Frontend UI
+# ParcelPilot AI Support Frontend UI
 
-A premium, interactive AI landing page for the **AI CRM Copilot** document intelligence system. This interface is built with **React**, **TypeScript**, **Tailwind CSS v4.0**, and **Framer Motion** to deliver a sleek ChatGPT/Claude-like user experience.
+This is the front-end chat interface for the **ParcelPilot AI Support Assistant**. It provides a sleek, light-theme, customer-support dashboard designed to help agents and users query policies, lookup shipment/ticket details, and execute actions with interactive confirmation steps.
 
 ---
 
@@ -8,77 +8,105 @@ A premium, interactive AI landing page for the **AI CRM Copilot** document intel
 
 - **Framework**: [React 19](https://react.dev/) + [TypeScript 5](https://www.typescriptlang.org/)
 - **Build Tool**: [Vite 8](https://vite.dev/)
-- **Styling**: [Tailwind CSS v4.0](https://tailwindcss.com/) (using CSS-first configuration and `@tailwindcss/vite` compiler plugin)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/) for fluid page transitions, card hover effects, drag-and-drop animations, and chip appearances
-- **Icons**: [Lucide React](https://lucide.dev/) for crisp, scalable line icons
+- **Styling**: [Tailwind CSS v4.0](https://tailwindcss.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
 
 ---
 
 ## ✨ Features Implemented
 
-1. **ChatGPT-style Layout**: Centered alignment of greetings, document shortcut cards, and chat composers. 
-2. **Suggested Prompt Cards**: Four interactive shortcut templates that populate the text input when clicked.
-3. **Full-Screen Drag & Drop**: Dragging files over the window activates a beautiful glassmorphic overlay. Dropping files queues a mockup upload indicator.
-4. **Simulated File Upload Progress**: Uploaded files show interactive chips above the input with progress animations (`0%` to `100%`) and removal options.
-5. **Interactive RAG Generation Loop**: Sending queries displays a shimmering text-block skeleton combined with dancing dots, followed by mock markdown-formatted summaries with source citation references.
-6. **Ultra-Responsive Styling**: Stacks naturally on mobile and tablet form factors, converting button text to icon-only controls on tiny viewports.
+1. **ParcelPilot Chat Dashboard**: Slate light-theme sidebar and main conversation feed focused on shipment support operations.
+2. **Session Persistence**: Maintains `conversationId` across requests in the React state.
+3. **New Conversation**: Clear existing states and start a fresh session at any time.
+4. **Interactive Action Confirmation**: 
+   - Prominently displays inline `[✓ Confirm]` and `[✕ Cancel]` buttons when a status of `NEEDS_CONFIRMATION` is returned.
+   - Confirm posts `"Yes, proceed."` and Cancel posts `"No, cancel."` using the active session ID.
+5. **Action Status Alerts**:
+   - `ACTION_COMPLETED`: Rendered as a green success alert.
+   - `ACTION_REJECTED`: Rendered as a neutral status alert.
+   - `ACTION_FAILED`: Rendered as a danger/error alert.
+   - `REQUIRES_MANAGER_APPROVAL`: Rendered as a blue information card summarizing the approval details (reason, creditAmount, nextStep).
+6. **Citation References**: Rendered with page/document icons under the assistant bubbles.
+7. **Traceability**: An expandable Debug Panel displays the raw JSON output and `traceId` for developers.
 
 ---
 
 ## 📁 Component Architecture
 
-The interface is structured modularly:
-
 ```text
-frontend/src/
-  ├── components/
-  │   ├── HeroSection.tsx       # Logo, Beta badge, and main header greeting
-  │   ├── PromptCard.tsx        # Dynamic suggestions templates with hover lifts
-  │   ├── ChatComposer.tsx      # Main input, hidden file inputs, and actions
-  │   ├── UploadChip.tsx        # File chip with upload status and removal trigger
-  │   ├── DragOverlay.tsx       # Fullscreen blur screen for file drag events
-  │   └── LoadingIndicator.tsx  # Shimmering skeleton loader for RAG latency
-  ├── App.tsx                   # Main state orchestration (files, queries, loading)
-  └── index.css                 # Tailwind v4 configuration and Google Fonts imports
+frontend/
+  ├── src/
+  │   ├── api/
+  │   │   └── parcelpilot.ts    # Centralized API client wrapper for /chat endpoint
+  │   ├── App.tsx               # Main UI view, state handlers, confirmation UX
+  │   ├── index.css             # Light theme layout overrides and Google Fonts imports
+  │   └── main.tsx              # StrictMode entry loader
+  ├── .env                      # Local environment variable configuration
+  └── .env.example              # Environment variables template
 ```
 
 ---
 
-## 🛠️ Installation & Development
+## 🛠️ Environment Variables
 
-### 1. Prerequisites
-Ensure you have [Node.js](https://nodejs.org/) (v18+) installed.
+Create a `.env` file in the `frontend` folder with the following contents:
+```env
+VITE_API_BASE_URL=http://127.0.0.1:5000
+```
 
-### 2. Install Dependencies
-Run the installation command inside the `frontend` folder:
+---
+
+## 💻 How to Run
+
+### Step 1: Start the Backend Server
+Make sure the PostgreSQL database is online and the backend is running.
 ```bash
-# On Windows PowerShell (resolving Execution Policy constraints)
-cmd /c npm install
+cd backend
+npm run dev
+```
+*(By default, this hosts the API at `http://127.0.0.1:5000`)*
 
-# Or standard terminal:
+### Step 2: Start the Frontend Client
+In a new terminal window:
+```bash
+cd frontend
 npm install
+npm run dev
 ```
-
-### 3. Run Development Server
-Start the local server:
-```bash
-cmd /c npm run dev
-```
-Open `http://localhost:5173` in your browser.
-
-### 4. Build Production Bundle
-Compile code and asset packages:
-```bash
-cmd /c npm run build
-```
+*(Open the dev server url: `http://localhost:5173`)*
 
 ---
 
-## 🔗 Integration Roadmap
+## 🧪 Testing Instructions
 
-To connect this UI to the existing Node.js backend:
-1. Replace the simulated state inside `handleSend` ([App.tsx](file:///E:/AI%20CRM/frontend/src/App.tsx)) with a real API call to:
-   - `POST http://localhost:5000/api/v1/chat` with `{ question: inputText, context: [...] }`.
-2. Connect the `ChatComposer` file input triggers with the document upload backend endpoint:
-   - `POST http://localhost:5000/api/documents/upload` to queue files into BullMQ.
-3. Fetch vector embeddings and similarity scores to display realistic reference citations on generated text.
+Verify the end-to-end flow with these test cases in the UI:
+
+### TEST 1: Policy Grounding
+- **Message**: `"What is the cancellation policy?"`
+- **Expected Status**: `ANSWERED`
+- **Result**: Grounded policy answer with a citation like `📄 03 Cancellation and Service Credit SOP`.
+
+### TEST 2: Intent Evaluation
+- **Message**: `"Can I cancel ORD-1001?"`
+- **Expected Status**: `ANSWERED`
+- **Result**: Confirms cancellation eligibility details.
+
+### TEST 3: Action Execution Confirmation
+- **Message**: `"Cancel ORD-1001."`
+- **Expected Status**: `NEEDS_CONFIRMATION`
+- **Result**: Prominently shows `Confirm` / `Cancel` buttons, status displays "Awaiting confirmation".
+
+### TEST 4: Action Execution Completion
+- **Click**: `Confirm`
+- **Expected Message Sent**: `"Yes, proceed."`
+- **Expected Status**: `ACTION_COMPLETED`
+- **Result**: Renders green check banner. The order `ORD-1001` status inside the Postgres database updates to `CANCELLED`.
+
+### TEST 5: Resetting Conversation
+- **Click**: `New Conversation` (in sidebar)
+- **Result**: Clears messages and session `conversationId`. Next message starts a fresh interaction.
+
+### TEST 6: Action Execution Rejection
+- **Message**: `"Cancel ORD-1001."` -> Click **Cancel**
+- **Expected Status**: `ACTION_REJECTED`
+- **Result**: Displays neutral warning card; order status is untouched.
