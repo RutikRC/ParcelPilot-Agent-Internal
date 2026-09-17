@@ -2,6 +2,16 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Bot } from "lucide-react";
 
+/**
+ * Small helper that returns a time-aware greeting message.
+ */
+export function getGreeting(date: Date = new Date()): string {
+  const hour = date.getHours();
+  if (hour < 12) return "Good morning!";
+  if (hour < 18) return "Good afternoon!";
+  return "Good evening!";
+}
+
 export const HeroSection: React.FC = () => {
   return (
     <div className="flex flex-col items-center text-center select-none max-w-2xl px-4">
@@ -31,7 +41,7 @@ export const HeroSection: React.FC = () => {
         transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
         className="text-4xl sm:text-5xl font-bold tracking-tight text-white mb-4 bg-gradient-to-b from-white to-neutral-400 bg-clip-text text-transparent"
       >
-        How can I help you today?
+        {getGreeting()} How can I help you today?
       </motion.h1>
 
       {/* Subtitle */}
