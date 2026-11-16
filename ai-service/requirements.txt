@@ -1,7 +1,7 @@
 annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.14.2
-certifi==2026.6.17
+certifi==2026.10.18
 charset-normalizer==3.4.7
 click==8.4.2
 colorama==0.4.6
@@ -21,7 +21,7 @@ langchain-protocol==0.0.18
 langgraph==0.3.15
 langgraph-checkpoint==3.0.0
 langgraph-prebuilt==1.1.0
-langgraph-sdk==0.4.2
+langgraph-sdk==0.4.4
 langsmith==0.8.18
 lxml==6.1.0
 ollama==0.6.2
