@@ -1,9 +1,10 @@
-// Guard for the lucide-react upgrade (1.29.0 -> 1.74.0).
+// Guard for the lucide-react upgrade (1.74.0 -> 1.81.0).
 //
 // The app imports its icons by name from "lucide-react". When the dependency
 // moves, the app must end up on at least the release that carries the new icon
-// set (1.74.0, where `centerline` was renamed to `axis`), and every icon name
-// the app imports must still resolve to a real icon.
+// set (1.81.0, which adds `elevator`, `steering-wheel`, `globe-clock` and
+// `bowl-chopsticks` and reworks `square-sigma` / `smartphone`), and every icon
+// name the app imports must still resolve to a real icon.
 //
 // The test reads the existing source files and the committed lockfile, so it
 // runs without any application change. When the package is installed it also
@@ -24,7 +25,11 @@ const LOCKFILE = join(FRONTEND_ROOT, "package-lock.json");
 
 // Version this change moves the app to. Anything older does not expose the
 // icon set the code below expects.
-const MIN_LUCIDE_VERSION = "1.74.0";
+const MIN_LUCIDE_VERSION = "1.81.0";
+
+// Icons introduced in the 1.81.0 release this guard tracks. They are additive,
+// so the app does not have to use them, but the bumped package must expose them.
+const NEW_ICONS = ["Elevator", "SteeringWheel", "GlobeClock", "BowlChopsticks"];
 
 const LUCIDE_IMPORT_RE = /import\s+(type\s+)?\{([^}]*)\}\s+from\s+["']lucide-react["']/g;
 
@@ -103,6 +108,11 @@ test("lucide-react resolves every icon the app imports", () => {
     versionAtLeast(installed, MIN_LUCIDE_VERSION),
     `expected installed lucide-react >= ${MIN_LUCIDE_VERSION}, found ${installed}`,
   );
+
+  const missingNew = NEW_ICONS.filter(
+    (name) => typeof lucide[name] !== "object" && typeof lucide[name] !== "function",
+  );
+  assert.deepEqual(missingNew, [], "lucide-react does not export the 1.81.0 icons");
 
   const missing = [];
   for (const [name, file] of imported) {
